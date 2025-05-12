@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # coding: utf-8
 
+#region initial comments
 """
 #############################################################################################################
 # Andrea Favero 31 May 2024
@@ -8,7 +9,7 @@
 # This script relates to CUBOTino Autonomous, a very small and simple Rubik's cube solver robot 3D printed
 # CUBOTino autonomous is the 'Top version', of the CUBOTino versions
 # This specific script controls two servos based on the movements string from Cubotino.py
-# 
+#
 # Possible moves with this robot
 # 1) Spins the complete cube ("S") laying on the bottom face: 1 means CW 90deg turns, while 3 means 90CCW turn
 # 2) Flips the complete cube ("F") by "moving" the Front face to Bottom face: Only positive values are possible
@@ -21,14 +22,13 @@
 #
 #
 # Developped on:
-#  - Raspberry pi Zero 2 
+#  - Raspberry pi Zero 2
 #  - Raspberry Pi OS (Legacy) A port of Debian Buster with security updates and desktop environment
 #    (Linux raspberry 5.10.103-v7+ #1529 SMP Tue 8 12:21:37 GMT 2022 armv71 GNU/Linux)
 #
 #############################################################################################################
 """
-
-
+#endregion initial comments
 
 ##################    imports standard libraries   #################################
 import time                            # import time library
@@ -39,13 +39,11 @@ from gpiozero import Servo, PWMLED     # import modules for the PWM part
 # ##################################################################################
 
 
-
 ##################    GPIO pins for Servos and LED   ###############################
 t_servo_pin = 12                # GPIO pin used for the top servo
 b_servo_pin = 13                # GPIO pin used for the bottom servo
 top_cover_led_pin = 18          # GPIO pin used to control the LED on/off
 # ##################################################################################
-
 
 
 ##################    general servo_settings    ####################################
@@ -59,9 +57,6 @@ led_init_status = False
 # ##################################################################################
 
 
-
-
-
 def init_top_cover_led():
     global factory
     from gpiozero.pins.pigpio import PiGPIOFactory    # pigpio library is used, to use hardare timers on PWM (to avoid servo jitter)
@@ -69,18 +64,12 @@ def init_top_cover_led():
     
     # NOTE: High freq. on the led PWM prevents camera from seeing flickering
     top_cover_led = PWMLED(top_cover_led_pin,
-                           active_high=True,
-                           initial_value=0,
-                           frequency=5000000,
-                           pin_factory=factory)
-    
+                            active_high=True,
+                            initial_value=0,
+                            frequency=5000000,
+                            pin_factory=factory)
     led_init_status = True
     return led_init_status, top_cover_led
-
-
-
-
-
 
 
 def load_servos_parameters(print_out):
@@ -89,7 +78,7 @@ def load_servos_parameters(print_out):
         These servo_settings are under a function, instead of root, to don't be executed when this script is used from CLI
         with arguments; In this other case the aim is to help setting the servo to their mid position."""
     
-    from Cubotino_T_settings_manager import settings as settings   # custom library managing the settings from<>to the settings files
+    from class_settings_manager import settings as settings   # custom library managing the settings from<>to the settings files
     
     global t_servo, t_min_pulse_width, t_max_pulse_width, t_top_cover                       # top servo, pulse width, status
     global t_servo_close, t_servo_open, t_servo_read, t_servo_flip, t_servo_rel             # top servo related angles and status
@@ -100,7 +89,6 @@ def load_servos_parameters(print_out):
     global b_servo_CCW_rel, b_servo_CW_rel, b_home_from_CCW, b_home_from_CW                 # bottom servo calculated angles
     global b_servo_home, b_servo_stopped, b_servo_CW_pos, b_servo_CCW_pos                   # bottom servo status
     global b_spin_time, b_rotate_time, b_rel_time                                           # bottom servo timers
-    
 
     servo_settings = settings.get_servos_settings(reload=True)  # settings are retrieved from the settings Class
 
@@ -111,7 +99,7 @@ def load_servos_parameters(print_out):
         for param, s in servo_settings.items():  # iteration over the settings dict
             print(f"{param}: {s}")               # feedback is printed to the terminal
         print()
-          
+
     try:
         t_min_pulse_width = servo_settings['t_min_pulse_width']        # defines the min Pulse With the top servo reacts to
         t_max_pulse_width = servo_settings['t_max_pulse_width']        # defines the max Pulse With the top servo reacts to
@@ -139,7 +127,6 @@ def load_servos_parameters(print_out):
         b_rotate_time = servo_settings['b_rotate_time']                # time for Cube_holder to rotate 90 deg (cube constrained)
         b_rel_time = servo_settings['b_rel_time']                      # time for Cube_holder to release tension at home, CCW and CW positions
         
-        
     except:   # exception will be raised if json keys differs, or parameters cannot be converted to float
         print('Error on converting to float the imported parameters (at Cubotino_T_servos.py)')   # feedback is printed to the terminal                                  
         return robot_init_status                                        # return robot_init_status variable, that is False
@@ -154,7 +141,7 @@ def load_servos_parameters(print_out):
     t_servo_rel = round(t_servo_close - t_servo_rel_delta,3) # top servo position to release tension
     
     timer = {}                                              # dict to store the servos timer values
-    timer['t_flip_to_close_time'] = t_flip_to_close_time 
+    timer['t_flip_to_close_time'] = t_flip_to_close_time
     timer['t_close_to_flip_time'] = t_close_to_flip_time
     timer['t_flip_open_time'] = t_flip_open_time
     timer['t_open_close_time'] = t_open_close_time
@@ -164,14 +151,9 @@ def load_servos_parameters(print_out):
         timer['t_rel_time'] = 0
     timer['b_spin_time'] = b_spin_time
     timer['b_rotate_time'] = b_rotate_time
-    timer['b_rel_time'] = b_rel_time                                
+    timer['b_rel_time'] = b_rel_time
     
     return timer   # return robot timers
-
-
-
-
-
 
 
 def init_servo(print_out=s_debug, start_pos=0, f_to_close_mode=False, s_silent=False, init_display=True):
@@ -192,28 +174,27 @@ def init_servo(print_out=s_debug, start_pos=0, f_to_close_mode=False, s_silent=F
         
     if not led_init_status:                   # case the led_init_status variable is false
         led_init_status, top_cover_led = init_top_cover_led()  # the GPIO for the led is initialized
- 
-    
+
     if not robot_init_status and not s_silent:  # case the inititialization status of the servos false
         
-        from Cubotino_T_pigpiod import pigpiod as pigpiod # start the pigpiod server
+        from class_pigpiod import pigpiod as pigpiod # start the pigpiod server
         
         if f_to_close_mode:                   # case the init got the f_to_close_mode as true
             flip_to_close_one_step = True     # flip_to_close_one_step is set true
         
-        timer = load_servos_parameters(print_out)  # upload the servos parameters  
+        timer = load_servos_parameters(print_out)  # upload the servos parameters
         if len(timer) == 0:                   # case the return is an empty dict
-            print('Could not find Cubotino_T_servo_settings.txt')  # feedback is printed to the terminal                                  
+            print('Could not find Cubotino_T_servo_settings.txt')  # feedback is printed to the terminal
             return robot_init_status          # return robot_init_status variable, that is False
         
         if start_pos==0:     # case the servos initial position equals zero (very first setting)
             t_servo = t_servo_create(t_min_pulse_width, t_max_pulse_width)  # t_servo servo object creation
-            b_servo = b_servo_create(b_min_pulse_width, b_max_pulse_width)  # b_servo servo object creation                 
+            b_servo = b_servo_create(b_min_pulse_width, b_max_pulse_width)  # b_servo servo object creation
         else:                # case the servos initial position differes from zero
             t_servo = t_servo_create(t_min_pulse_width, t_max_pulse_width, t_servo_open)  # t_servo servo object creation
             b_servo = b_servo_create(b_min_pulse_width, b_max_pulse_width, b_home)        # b_servo servo object creation
 
-        t_top_cover = start_pos               # variable to track the top cover/lifter position              
+        t_top_cover = start_pos               # variable to track the top cover/lifter position
         b_servo_home=True                     # boolean of bottom servo at home
         b_servo_stopped = True                # boolean of bottom servo at location the lifter can be operated
         b_servo_CW_pos=False                  # boolean of bottom servo at full CW position
@@ -224,7 +205,7 @@ def init_servo(print_out=s_debug, start_pos=0, f_to_close_mode=False, s_silent=F
             print("\nServo init done")        # feedback is printed to the terminal
         
         if start_pos !=0:                     # case the start_pos is not zero
-            servo_start_pos(start_pos)        # servos are positioned to the start position    
+            servo_start_pos(start_pos)        # servos are positioned to the start position
         fun_status=False                      # boolean to track the robot fun status, it is True after solving the cube :-)
         cam_led_test()                        # makes a very short led test
         cam_led_Off()                         # forces the led off
@@ -233,11 +214,6 @@ def init_servo(print_out=s_debug, start_pos=0, f_to_close_mode=False, s_silent=F
     
     else:                                     # caase robot_init_status already True
         return True                           # confirms the init status, and don't return the timer(s)
-
-
-
-
-
 
 
 def t_servo_create(t_min_pulse_width, t_max_pulse_width, initial_pos=0):
@@ -261,9 +237,6 @@ def t_servo_create(t_min_pulse_width, t_max_pulse_width, initial_pos=0):
     return t_servo
 
 
-
-
-
 def b_servo_create(b_min_pulse_width, b_max_pulse_width, initial_pos=0):
     """bottom servo object creation."""
     global b_servo_pin, factory, b_servo
@@ -285,22 +258,13 @@ def b_servo_create(b_min_pulse_width, b_max_pulse_width, initial_pos=0):
     return b_servo
 
 
-
-
-
-
-
 def set_display():
     global s_disp
     
-    from Cubotino_T_display import display as s_disp    
+    from class_Display import display as s_disp
     s_disp.set_backlight(0)     # display backlight is set off
     s_disp.show_cubotino()      # show cubotino logo on display, when this script is imported
     s_disp.set_backlight(1)     # activates the display backlight
-
-
-
-
 
 
 def servo_tune_via_gui(debug, start_pos):
@@ -313,12 +277,6 @@ def servo_tune_via_gui(debug, start_pos):
     stop_servos=False              # boolean to stop the servos during solving proces: It is set true at the start, servos cannot operate
     b_servo_operable=True          # variable to block/allow bottom servo operation
     return robot_init_status
-    
-
-
-
-
-
 
 
 def quit_func():
@@ -327,10 +285,6 @@ def quit_func():
     GPIO.setup(top_cover_led_pin, GPIO.OUT, initial=GPIO.LOW)   # GPIO top_cover_led_pin (Top_cover_Led) is set as output, and force low
     GPIO.setup(t_servo_pin, GPIO.OUT, initial=GPIO.LOW)         # GPIO t_servo_pin (Top_cover servo) is set as output, and force low
     GPIO.setup(b_servo_pin, GPIO.OUT, initial=GPIO.LOW)         # GPIO b_servo_pin (Cube_holder servo) is set as output, and force low
-
-
-
-
 
 
 def cam_led_On(value=0.05):
@@ -342,17 +296,9 @@ def cam_led_On(value=0.05):
         top_cover_led.value = value               # top cover led PWM is set to arg value
 
 
-
-
-
-
 def cam_led_Off():
     """ Sets the top_cover led OFF."""
     top_cover_led.off()      # top cover led PWM is set to 0
-
-
-
-
 
 
 def cam_led_test():
@@ -369,10 +315,6 @@ def cam_led_test():
     top_cover_led.off()                # top cover led PWM is set to 0
 
 
-
-
-
-
 def servo_start_pos(start_pos):
     """Servos are positioned to the intended start position, meaning top_cover on read position and cube_holder on its middle position"""
     
@@ -382,7 +324,6 @@ def servo_start_pos(start_pos):
     
     stop_servos=False                 # boolean to stop the servos during solving process is set False: servos can be operated
     b_servo_operable=False            # variable to block/allow bottom servo operation
-    
     
     t_servo.value = t_servo_open      # top servo is positioned in open position
     time.sleep(t_close_to_flip_time)  # time to allow the top_cover/lifter to reach the open postion   
@@ -406,13 +347,8 @@ def servo_start_pos(start_pos):
     
     elif start_pos == 'open':         # case the top cover initial position is 'open'
         t_top_cover = 'open'          # variable to track the top cover/lifter position
-        
     
     cam_led_Off()                     # forces the top_cover_led to off
-
-
-
-
 
 
 def servo_off():
@@ -423,11 +359,6 @@ def servo_off():
     return
 
 
-
-
-
-
-
 def stopping_servos(print_out=s_debug):
     """ Function to stop the servos."""
     global stop_servos
@@ -435,11 +366,6 @@ def stopping_servos(print_out=s_debug):
     if print_out:                         # case the print_out variable is set true
         print("\nCalled the servos stopping function\n")   # feedback is printed to the terminal
     stop_servos=True                      # boolean to stop the servos during solving process, is set true: Servos are stopped
-
-
-
-
-
 
 
 def stop_release(print_out=s_debug):
@@ -452,11 +378,6 @@ def stop_release(print_out=s_debug):
     stop_servos=False            # boolean to stop the servos during solving process, is set false: Servo can be operated
 
 
-
-
-
-
-
 def open_pos():
     """ Function to position the top_cover to the open position, without waiting time !!!"""
     global t_top_cover, b_servo_operable, b_servo_stopped
@@ -467,10 +388,6 @@ def open_pos():
             t_servo.value = t_servo_open         # servo is positioned to open
             t_top_cover='open'                   # cover/lifter position variable set to open
             b_servo_operable=True                # variable to block/allow bottom servo operation
-
-
-
-
 
 
 def read():
@@ -494,11 +411,6 @@ def read():
             return 'read'                        # position of the top_cover is returned
 
 
-
-
-
-
-
 def flip_up():
     """ Function to raise the flipper to the upper position, to flip the cube around its horizontal axis."""
     
@@ -516,11 +428,6 @@ def flip_up():
             t_top_cover='flip'                   # cover/lifter position variable set to flip
 
 
-
-
-
-
-
 def flip_to_read():
     """ Function to raise the top cover to the open position. The cube is not contrained by the top cover or the flipper."""
     
@@ -535,10 +442,6 @@ def flip_to_read():
             b_servo_operable=True                # variable to block/allow bottom servo operation
 
 
-
-
-
-
 def flip_to_open():
     """ Function to raise the top cover to the open position. The cube is not contrained by the top cover or the flipper."""
     
@@ -551,10 +454,6 @@ def flip_to_open():
             time.sleep(t_flip_open_time)         # time for the top servo to reach the open top cover position
             t_top_cover='open'                   # variable to track the top cover/lifter position
             b_servo_operable=True                # variable to block/allow bottom servo operation
-
-
-
-
 
 
 def flip_to_close():
@@ -587,10 +486,6 @@ def flip_to_close():
             b_servo_operable=True                  # variable to block/allow bottom servo operation
 
 
-
-
-
-
 def flip():
     """ Flips the cube during the cube detection phase, and places the top_cover (piCamera) in read position."""
     
@@ -608,10 +503,6 @@ def flip():
             b_servo_operable=False             # variable to block/allow bottom servo operation
 
 
-
-
-
-
 def flip_toggle(current_pos, t_servo_read, t_servo_flip):
     """ Toggles between Fip and read position (used by the GUI)."""
     
@@ -626,12 +517,6 @@ def flip_toggle(current_pos, t_servo_read, t_servo_flip):
         t_servo.value = t_servo_read       # top servo is positioned to read position
         t_top_cover = 'read'               # read position is assigned to t_top_cover variable
         return 'read'                      # position of the top_cover is returned
-
-
-
-
-
-
 
 
 def open_cover(target=0, test=False):
@@ -651,11 +536,6 @@ def open_cover(target=0, test=False):
             return 'open'                          # position of the top_cover is returned
 
 
-
-
-
-
-
 def close_cover(target=0, release=0, timer1=0, timer2=0, test=False):
     """ Function to close the top cover, to contrain the cube.
         Parameters in argument are used by the GUI to set/test the servos positions."""
@@ -667,7 +547,7 @@ def close_cover(target=0, release=0, timer1=0, timer2=0, test=False):
         if b_servo_stopped==True:                  # boolean of bottom servo at location the lifter can be operated
             b_servo_operable=False                 # variable to block/allow bottom servo operation
             
-            if test:                               # case the test variable is set True (used by the GUI)                 
+            if test:                               # case the test variable is set True (used by the GUI)
                 t_servo.value = target             # servo is positioned to open
                 time.sleep(timer1)                 # time for the servo to reach the open position
                 if t_servo_rel < t_servo_close:    # case the t_servo_rel_delta is > zero
@@ -685,10 +565,6 @@ def close_cover(target=0, release=0, timer1=0, timer2=0, test=False):
             return 'close'                         # position of the top_cover is returned
 
 
-
-
-
-
 def spin_out(direction, target=0, release=0, timer1=0, test=False):
     """ Function that spins the cube holder toward CW or CCW.
         During the spin the cube is not contrained by the top cover.
@@ -696,7 +572,7 @@ def spin_out(direction, target=0, release=0, timer1=0, test=False):
         Parameters in argument are used by the GUI to set/test the servos positions."""
     
     global t_top_cover, b_servo_operable, b_servo_stopped, b_servo_home, b_servo_CW_pos, b_servo_CCW_pos, b_servo
-           
+
     if not b_servo_operable and t_top_cover=='read':
         flip_to_open()
 
@@ -724,27 +600,22 @@ def spin_out(direction, target=0, release=0, timer1=0, test=False):
                         b_servo.value = b_servo_CCW_rel  # bottom servo moves to almost the max CCW position
                         time.sleep(b_spin_time*number)   # time for the bottom servo to reach the most CCW position
                         b_servo_CCW_pos=True         # boolean of bottom servo at full CCW position
-                        b_servo_CW_pos=False                
+                        b_servo_CW_pos=False
                 elif direction=='CW':                # case the set direction is CW
                     if test:                         # case the variable test is set True
-                        b_servo.value = target       # bottom servo moves to the most CW position 
+                        b_servo.value = target       # bottom servo moves to the most CW position
                         time.sleep(timer1)           # time to let the servo reaching the CCW position
                         if release > 0:              # case release variable is > than 0
                             b_servo.value = target - release   # bottom servo moves back of releave value
                     else:                            # case the variable test is set False
-                        b_servo.value = b_servo_CW_rel   # bottom servo moves to almost the max CW position 
+                        b_servo.value = b_servo_CW_rel   # bottom servo moves to almost the max CW position
                         time.sleep(b_spin_time*number)   # time for the bottom servo to reach the most CW position
                         b_servo_CW_pos=True          # boolean of bottom servo at full CW position
-                        b_servo_CCW_pos=False                
+                        b_servo_CCW_pos=False
                 b_servo_stopped=True                 # boolean of bottom servo at location the lifter can be operated
                 b_servo_home=False                   # boolean of bottom servo at home
                 b_servo_stopped=True                 # boolean of bottom servo at location the lifter can be operated
                 return direction                     # position of the holder is returned
-
-
-
-
-
 
 
 def spin_home():
@@ -772,20 +643,11 @@ def spin_home():
                 return 'home'                   # position of the holder is returned
 
 
-
-
-
-
-
 # def spin(direction):
     # """ Spins the cube during the cube detection phase"""
     
     # spin_out(direction)  # calls the spin_out function
     # spin_home()          # calls the spin home function
-
-
-
-
 
 
 def rotate_out(direction):
@@ -834,12 +696,6 @@ def rotate_out(direction):
                 return 'direction'                   # position of the holder is returned
 
 
-
-
-
-
-
-
 def rotate_home(direction, home=0, release=0, timer1=0, test=False):
     """ Function that rotates the cube holder to home position; During the rotation the cube is contrained by the top cover.
         The cube holder makes first an extra rotation, and later it comes back to the home position; This approach
@@ -884,11 +740,6 @@ def rotate_home(direction, home=0, release=0, timer1=0, test=False):
                     return 'home'
 
 
-
-
-
-
-
 def servo_to_pos(servo, pos, rel=''):
     """function that sets the the'ref' servo to the position 'val'.
         This function is used by the GUI sliders to set/test the servos positions"""
@@ -917,12 +768,6 @@ def servo_to_pos(servo, pos, rel=''):
         print("Accepted values are from -1.0 to 1.0")  # feedback is printed to the terminal
 
 
-
-
-
-
-
-
 def check_moves(moves, print_out=s_debug):
     """ Function that counts the total servo moves, based on the received moves string.
         This function also verifies if the move string is compatible with servo contrained within 180 deg range (from -90 to 90 deg):
@@ -933,22 +778,22 @@ def check_moves(moves, print_out=s_debug):
     tot_moves=0                                           # counter for the total amount of servo moves (1x complete flip, 1x each 90 deg cube spin or 1st layer rotation)
     
     for i in range(len(moves)):                           # iteration over all the string characters
-        if moves[i]=='1':                                 # case direction is CW 
+        if moves[i]=='1':                                 # case direction is CW
             if moves[i-1] == 'R' or moves[i-1] == 'S':    # case the direction refers to cube spin or layer rotation
                 servo_angle+=90                           # positive 90deg angle are added to the angle counter
                 tot_moves+=1                              # counter is increased
 
-        elif moves[i]=='0':                               # case direction is CW 
+        elif moves[i]=='0':                               # case direction is CW
             if moves[i-1] == 'R' or moves[i-1] == 'S':    # case the direction refers to cube spin or layer rotation
                 servo_angle+=180                          # negative 90deg angle are subtracted from the angle counter
                 tot_moves+=1                              # counter is increased
 
-        elif moves[i]=='3':                               # case direction is CCW 
+        elif moves[i]=='3':                               # case direction is CCW
             if moves[i-1] == 'R' or moves[i-1] == 'S':    # case the direction refers to cube spin or layer rotation
                 servo_angle-=90                           # negative 90deg angle are subtracted from the angle counter
                 tot_moves+=1                              # counter is increased
 
-        elif moves[i]=='4':                               # case direction is CCW 
+        elif moves[i]=='4':                               # case direction is CCW
             if moves[i-1] == 'R' or moves[i-1] == 'S':    # case the direction refers to cube spin or layer rotation
                 servo_angle-=180                          # negative 90deg angle are subtracted from the angle counter
                 tot_moves+=1                              # counter is increased
@@ -966,21 +811,17 @@ def check_moves(moves, print_out=s_debug):
         if print_out:                                     # case the print_out variable is set true
             print('Servo_angle within range')             # positive result is printed
     
-    remaining_moves={}                                            # empty dict to store the left moves 
+    remaining_moves={}                                            # empty dict to store the left moves
     left_moves=tot_moves                                          # initial remaining moves are all the moves
     for i in range(len(moves)):                                   # iteration over all the string characters
-        if moves[i]=='R' or moves[i]=='S':                        # case the move is cube spin or layer rotation               
+        if moves[i]=='R' or moves[i]=='S':                        # case the move is cube spin or layer rotation
             left_moves-=1                                         # counter is decreased by one
             remaining_moves[i]=int(100*(1-left_moves/tot_moves))  # solving percentage associated to the move index key
         elif moves[i]=='F':                                       # case there is a flip on the move string
             left_moves-=int(moves[i+1])                           # counter is decreased by the amount of flips
-            remaining_moves[i]=int(100*(1-left_moves/tot_moves))  # solving percentage associated to the move index key   
+            remaining_moves[i]=int(100*(1-left_moves/tot_moves))  # solving percentage associated to the move index key
         
     return servo_angle_ok, tot_moves, remaining_moves
-
-
-
-
 
 
 def estimate_time(moves, timer, slow_time=0):
@@ -997,7 +838,6 @@ def estimate_time(moves, timer, slow_time=0):
     b_rotate_time = timer['b_rotate_time']
     b_rel_time = timer['b_rel_time']
     
-    
     t_top_cover = 'read'                           # variable to track the top cover/lifter position
     tot_time=0                                     # counter for the total time
     string_len=len(moves)                          # number of characters in the moves string
@@ -1010,8 +850,7 @@ def estimate_time(moves, timer, slow_time=0):
             tot_time += (t_open_close_time + t_rel_time + slow_time)  # time for the servo to reach the flipping position
             t_top_cover = 'close'                  # top cover position is initially set to close
     
-                       
-    for i in range(string_len):                    # iteration over the characters of the moves string     
+    for i in range(string_len):                    # iteration over the characters of the moves string
         if moves[i]=='F':                          # case there is a flip on the move string
             flips=int(moves[i+1])                  # number of flips
             
@@ -1036,7 +875,6 @@ def estimate_time(moves, timer, slow_time=0):
                         tot_time += (t_flip_open_time + slow_time)  # time for the top servo to reach the open top cover position
                         t_top_cover='open'         # variable to track the top cover/lifter position
 
-        
         elif moves[i]=='S':                        # case there is a cube spin on the move string
             if t_top_cover!='open':                # case the top cover is not in open position
                 tot_time += (t_open_close_time + slow_time)   # time for the servo to reach the open position
@@ -1046,7 +884,6 @@ def estimate_time(moves, timer, slow_time=0):
             else:
                 tot_time += (b_spin_time + slow_time)  # time for the bottom servo to spin
             t_top_cover='open'                     # cover/lifter position variable set to open
-
 
         elif moves[i]=='R':                        # case there is a cube 1st layer rotation
             if t_top_cover!='close':               # case the top cover is not in close position
@@ -1060,11 +897,6 @@ def estimate_time(moves, timer, slow_time=0):
     # time estimation is based on sleep time for servos movements, therefore it is not accurate
     k=1.08                                         # correction coefficient
     return round(tot_time*k,1)
-
-
-
-
-
 
 
 def fun(print_out=s_debug):
@@ -1096,7 +928,6 @@ def fun(print_out=s_debug):
                 time.sleep(b_spin_time)              # time for the bottom servo to reach the extra home position
                 b_servo_home=True                    # boolean bottom servo is home
 
-    
     time.sleep(0.25)                                 # little delay, to timely separate from previous robot movements
     runs=8                                           # number of sections
     b_delta = (b_servo_CW-b_home)/runs               # PWM amplitute per section
@@ -1131,11 +962,6 @@ def fun(print_out=s_debug):
     return True
 
 
-
-
-
-
-
 def servo_solve_cube(moves, scrambling=False, print_out=s_debug, test=False):
     """ Function that translates the received string of moves, into servos sequence activations.
         This is substantially the main function."""
@@ -1146,6 +972,13 @@ def servo_solve_cube(moves, scrambling=False, print_out=s_debug, test=False):
     # the received string is analyzed if compatible with servo rotation contraints, and amount of movements
     servo_angle_ok, tot_moves, remaining_moves = check_moves(moves, print_out=s_debug)
     
+    try:
+        import Affichage as aff
+    except:
+        raise ImportError("Affichage module already imported or not found")
+    
+    aff.apply_cube_move(moves)
+    
     if not servo_angle_ok:
         print("Error on servo moves algorithm")    # feedback to terminal
         robot_status_='Robot_stopped'              # string variable indicating how the servo_solve_cube function has ended
@@ -1153,7 +986,7 @@ def servo_solve_cube(moves, scrambling=False, print_out=s_debug, test=False):
         return robot_status_, robot_time_          # function returns the cube status and the robot time
         
     if print_out:                                  # case the print_out variable is set true
-        print(f'Total amount of servo movements: {tot_moves}\n')   # feedback is printed to the terminal   
+        print(f'Total amount of servo movements: {tot_moves}\n')   # feedback is printed to the terminal
 
     if len(moves)>0:                               # case moves > 0 (there are moves)
         if moves[0] == 'S':                        # case the first move requires a cube spin
@@ -1198,7 +1031,7 @@ def servo_solve_cube(moves, scrambling=False, print_out=s_debug, test=False):
             if print_out:                          # case the print_out variable is set true
                 print(f'To do F{flips}')           # for print_out
             
-            for f in range(flips):                 # iterates over the number of requested flips        
+            for f in range(flips):                 # iterates over the number of requested flips
                 if test:                           # case test is set True (function is called for test by CLI or GUI)
                     if not touch_btn.is_pressed:   # case the touch button is pressed
                         stopping_servos()          # servos are stopped
@@ -1218,8 +1051,7 @@ def servo_solve_cube(moves, scrambling=False, print_out=s_debug, test=False):
                     if moves[i+2]=='R':            # case the next action is a 1st layer cube rotation
                         flip_to_close()            # top cover is lowered to close position
                     elif moves[i+2]=='S':          # case the next action is a cube spin
-                        flip_to_open()             # top cover is lowered to open position 
-
+                        flip_to_open()             # top cover is lowered to open position
 
         elif moves[i]=='S':                        # case there is a cube spin on the move string
             direction=int(moves[i+1])              # rotation direction is retrived
@@ -1242,9 +1074,8 @@ def servo_solve_cube(moves, scrambling=False, print_out=s_debug, test=False):
             else:                                  # case the bottom servo is at full CW or CCW position
                 spin_home()                        # call to function to spin the full cube toward home position
 
-
         elif moves[i]=='R':                        # case there is a cube 1st layer rotation
-            direction=int(moves[i+1])              # rotation direction is retrived   
+            direction=int(moves[i+1])              # rotation direction is retrived
             if print_out:                          # case the print_out variable is set true
                 print(f'To do R{direction} {curpos}')  # for print_out
 
@@ -1258,7 +1089,7 @@ def servo_solve_cube(moves, scrambling=False, print_out=s_debug, test=False):
                 set_dir='CW'                       # CW directio is assigned to the variable
             
             if b_servo_home==True:                 # case bottom servo is at home
-                rotate_out(set_dir)                # call to function to rotate cube 1st layer on the set direction, moving out from home              
+                rotate_out(set_dir)                # call to function to rotate cube 1st layer on the set direction, moving out from home
             elif set_dir[-1] == '2':
                 rotate_out(set_dir)                # call to function to spin the full cube to full CW or CCW
             elif b_servo_CW_pos==True:             # case the bottom servo is at full CW position
@@ -1268,7 +1099,7 @@ def servo_solve_cube(moves, scrambling=False, print_out=s_debug, test=False):
                 if set_dir=='CW':                  # case the set direction is CW
                     rotate_home(set_dir)           # call to function to spin the full cube toward home position
     
-    if stop_servos:                                # case there is a stop request for servos 
+    if stop_servos:                                # case there is a stop request for servos
         if print_out:                              # case the print_out variable is set true
             print("\nRobot stopped")               # feedback is printed to the terminal
         robot_status_='Robot_stopped'              # string variable indicating how the servo_solve_cube function has ended
@@ -1286,10 +1117,6 @@ def servo_solve_cube(moves, scrambling=False, print_out=s_debug, test=False):
     
     return robot_status_, robot_time_              # function returns the cube status and the robot time
 
-
-
-     
-     
 
 def set_servos_pos(target):
         """ Function to set both servos to target angle, wherein the target is from -1.00 to 1.00"""
@@ -1309,29 +1136,18 @@ def set_servos_pos(target):
         b_servo.value = target                                             # bottom servo is set to the target
 
 
-
-
-
-
-
 def update_parameters():
     """update the dict with servos parameters when tested/set via --tune argument."""
     
     parameters = {'t_min_pulse_width':t_min_pulse_width, 't_max_pulse_width':t_max_pulse_width,
-                  't_servo_close_':t_servo_close, 't_servo_rel_delta_':t_servo_rel,'t_servo_open_':t_servo_open,
-                  't_servo_read_':t_servo_read, 't_servo_flip_':t_servo_flip,
-                  
-                  'b_min_pulse_width':b_min_pulse_width, 'b_max_pulse_width': b_max_pulse_width,
-                  'b_home_':b_home, 'b_extra_home_CW_':b_extra_home_CW, 'b_extra_home_CCW_':b_extra_home_CCW,
-                  'b_servo_ccw_':b_servo_CCW, 'b_servo_cw_':b_servo_CW,
-                  'b_rel_CCW_':b_rel_CCW, 'b_rel_CW_':b_rel_CW}  # dict of (--tune) parameters
-    
+                    't_servo_close_':t_servo_close, 't_servo_rel_delta_':t_servo_rel,'t_servo_open_':t_servo_open,
+                    't_servo_read_':t_servo_read, 't_servo_flip_':t_servo_flip,
+                    
+                    'b_min_pulse_width':b_min_pulse_width, 'b_max_pulse_width': b_max_pulse_width,
+                    'b_home_':b_home, 'b_extra_home_CW_':b_extra_home_CW, 'b_extra_home_CCW_':b_extra_home_CCW,
+                    'b_servo_ccw_':b_servo_CCW, 'b_servo_cw_':b_servo_CW,
+                    'b_rel_CCW_':b_rel_CCW, 'b_rel_CW_':b_rel_CW}  # dict of (--tune) parameters
     return parameters
-
-
-
-
-
 
 
 def print_info():
@@ -1342,7 +1158,7 @@ def print_info():
     print('\n Top servo name is t_servo,  Bottom servo name is b_servo.')
     print('\n Top servo positions: t_servo_close, t_servo_open, t_servo_read, t_servo_flip')
     print(' Bottom servo positions: b_home, b_servo_CCW, b_servo_CW')
-    print(' When t_servo_close, b_home, b_servo_CW and b_servo_CCW the release rotation is also applied') 
+    print(' When t_servo_close, b_home, b_servo_CW and b_servo_CCW the release rotation is also applied')
     print('\n Min variation leading to servo movement is (+/-)0.02 or 0.03, depending on the servos.')
     print(' Smaller values lead to servo CCW rotation, by considering the servo point of view !!!')
     print('\n ATTENTION: Check the cube holder is free to rotate BEFORE moving the bottom servo from home.')
@@ -1360,17 +1176,11 @@ def print_info():
     print(" Use arrows to recall previously entered commands, and easy editing")
 
 
-
-
-
-
-
 def test_servos_positions():
     """function to indivially check servo positions, by recalling the settings at json file of by entering the target value """
     
     global b_servo, t_servo, robot_init_status   # global variables being updated by this function
     global t_min_pulse_width, t_max_pulse_width,  b_min_pulse_width, b_max_pulse_width
-    
     
     print_info()                  # tuning info are printed to the terminal
     init_servo(print_out=s_debug, start_pos='read')     # servos are initialized
@@ -1440,7 +1250,6 @@ def test_servos_positions():
             time.sleep(0.5)                             # wait time of 0.5s
             b_servo = b_servo_create(b_min_pulse_width, b_max_pulse_width)  # servo object with previously used pulse width range
             print('Bottom servo: Set the pulse width to the previous setting\n')
-            
 
         elif ui == 't_sweep':                           # case the input is 't_sweep'
             t_servo = t_servo_create(0.3, 2.7)          # servo object with extended pulse width range
@@ -1461,17 +1270,16 @@ def test_servos_positions():
             time.sleep(0.5)                             # wait time of 0.5s
             t_servo = t_servo_create(t_min_pulse_width, t_max_pulse_width)    # servo object with previously used pulse width range
             print('Top servo: Set the pulse width to the previous setting\n')
-            
         
         elif ui == 'pw' or ui == 'PW':                  # case the input is 'pw'
             done = False                                # boolean variable later used to exit the while loop
             choice =''                                  # empty string is assigned to choice variable (= no choice yet)
-            while done == False:                        # iteration until done equals False 
+            while done == False:                        # iteration until done equals False
                 choice = input('  type: \n'
-                               '  0       for range 0.5 to 2.5ms \n'
-                               '  1       for range 1.0 to 2.0ms \n'
-                               '  cust    to set custom min and max pulse width values (in milliseconds) \n'
-                               '  your choice: ')
+                                '  0       for range 0.5 to 2.5ms \n'
+                                '  1       for range 1.0 to 2.0ms \n'
+                                '  cust    to set custom min and max pulse width values (in milliseconds) \n'
+                                '  your choice: ')
                 if choice == '0':
                     print('  servos pulse width set on range 0.5 to 2.5ms')
                     t_min_pulse_width = 0.5
@@ -1499,7 +1307,7 @@ def test_servos_positions():
                     max_pw_is_number = max_pw_str.replace(".", "").replace(",", "").isnumeric()
                     if min_pw_is_number and max_pw_is_number:
                         min_pw = float(min_pw_str)
-                        max_pw = float(max_pw_str) 
+                        max_pw = float(max_pw_str)
                         if min_pw>0 and min_pw<=1.5:
                             if max_pw>=1.5 and max_pw<3:
                                 t_min_pulse_width = min_pw
@@ -1513,7 +1321,7 @@ def test_servos_positions():
                             else:
                                 print('\n      max pulse width value should be between 1.5 and 3 ms')
                         else:
-                            print('\n      max pulse width value should be between 1.5 and 3 ms') 
+                            print('\n      max pulse width value should be between 1.5 and 3 ms')
                     else:
                         print('\n      Note:')
                         print('      min pulse width value should be between 0 and 1.5 ms')
@@ -1573,7 +1381,7 @@ def test_servos_positions():
                             b_servo.value = b_home + b_extra_home_CCW    # extra rotation to home is applied to the servo
                         time.sleep(1)                                    # wait time to ensure the servo reaches the position, and to allow user reaction
                         b_servo.value = b_home                           # servo is rotated to home
-                        print('Done')                                    # feedback is printed to terminal   
+                        print('Done')                                    # feedback is printed to terminal
                         
                     elif argument in ('b_servo_ccw', 'b_servo_cw'):      # case the argument is in tuple
                         print('Testing bottom servo, position: ', argument)  # feedback is printed to terminal
@@ -1588,7 +1396,6 @@ def test_servos_positions():
                         print('Done')                                    # feedback is printed to terminal
                         
                     else:                                                # case the argument is not in previous tuples
-
                         if argument.lstrip('-').replace('.', '', 1).isdigit():
                             arg = round(float(argument),3)               # provided argument is tranformed in tuple, rounded to 3 decimals
                             if arg >= -1 and arg <= 1:                   # case the argument is a float in range -1 to 1
@@ -1609,18 +1416,11 @@ def test_servos_positions():
                         else:
                             print('Argument not valid')
                             raise ValueError('Argument not valid')
-                            
                     
                 except:                                                      # exception
                     print('Accepted argument is a float in range -1 to 1')   # feedback is printed to terminal
-                    
-                            
         time.sleep(0.1)                                              # little wait time in the infinite while loop
     exit()                                                           # script is closed when the infinite loop is interrupted
-
-
-
-
 
 
 def test_set_of_movements():
@@ -1633,13 +1433,13 @@ def test_set_of_movements():
     
     # buttons at the display board, used as stop buttons when servos setting/testing via GUI
     from gpiozero import Button     # library to manage GPIO
- 
+
     try:                            # tentative
         touch_btn                   # name of touch button
     except NameError:               # case a name error exception is raised
         touch_btn = Button(26)      # touch button object is created
     
-    print('\nDemonstration of the robot servos current settings, by solving a predefined scrambled cube')   
+    print('\nDemonstration of the robot servos current settings, by solving a predefined scrambled cube')
     print('Press the touch button to interrupt the test')
     
     movements= 'F1R1S3R1F3S3R1F1S4R0F3S4R0S3F1S3R0S3F3R1F1S4R0F1S3R1F3S4R0F1S4R0S3F1R3F1S1R3S1F1R3F2S1R3S1F1R3S1F1R3S1F3R3F3R1F2R1S3R1F1S3R1F2S4R0'
@@ -1679,11 +1479,6 @@ def test_set_of_movements():
 #     s_disp.set_backlight(0)                # de-activates the display backlight
 
 
-
-
-
-
-
 if __name__ == "__main__":
     """ This main function (without arguments) to test the servos while solving a predefined robot movement string:
         F2R1S3R1S3S3F1R1F2R1S3S3F1R1S3R1F3R1S3R1S3S3F3R1S3F1R1S3R1F3R1S3R1S3F3R1S3R1
@@ -1693,19 +1488,17 @@ if __name__ == "__main__":
         by passing 0 (zero); Other angles can be tested, by passing values from -1 to 1.
         
         When argument is 'tune' from the command line, this function allows to verify the servos positions on
-        their default positions (as per json file) or to play with the position entered as target values (from -1 to 1)."""    
-    
-    
+        their default positions (as per json file) or to play with the position entered as target values (from -1 to 1)."""
+
     try:                  # tentative
         print ("\033c")   # clears the terminal
     except:               # in case of exeptions
         pass              # do nothing
     
-    
     ##################### setting the servo to mid angle, or to traget, from the CLI  #############
     import argparse
     parser = argparse.ArgumentParser(description='Servo parameter for middle and other positions') # argument parser object creation
-    parser.add_argument("--set", type=float, 
+    parser.add_argument("--set", type=float,
                         help="Set both servos to PWM value (value range from -1.00 to 1.00)")      # argument is added to the parser
     parser.add_argument("--tune", action='store_true',
                         help="Check individual servo default positions, to find the best tune")    # argument is added to the parser
@@ -1724,7 +1517,7 @@ if __name__ == "__main__":
         set_servos_pos(args.set)                           # servos are set according to the value in 'set' argument
         while True:                                        # infinite loop, to give the chance to play with the servos angles
             target = input('\nenter a new PWM value from -1.00 to 1.00 (0 for mid position, any letter to escape): ') # input request with proper info
-            try:                                           # tentative 
+            try:                                           # tentative
                 target = float(target)                     # user input transformed to float
                 set_servos_pos(target)                     # servos are set according to the input value
             except:                                        # exception, in case non-numbers entered
@@ -1738,4 +1531,3 @@ if __name__ == "__main__":
     else:     # case the Cubotino_T_servos.py has been launched without 'set' or 'tune' arguments
         test_set_of_movements()   # call to the function that holds the predefined set of movements
     # #############################################################################################
-        

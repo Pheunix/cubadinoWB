@@ -59,7 +59,6 @@ if __name__ == "__main__":
         print("Attempting to set digital gain to 1")
         set_digital_gain(camera, 1)
 
-
         try:
             while True:
                 print("Current a/d gains: {}, {}".format(camera.analog_gain, camera.digital_gain))

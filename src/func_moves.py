@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # coding: utf-8
 
+#region initial comments
 """
 #############################################################################################################
 # Andrea Favero 10 April 2024
@@ -24,7 +25,7 @@
 # 2) Flips the complete cube ("F") by "moving" the Front face to Bottom face: Only positive values are possible
 # 3) Rotates the bottom layer ("R") while costraining the 2nd and 3rd layer.
 # 4) The order of S, F has to be strictly followed
-# 5) Example 'F1R1S3' means: 1x cube Flip, 1x (90deg) CW rotation of the 1st (Down) layer, 1x (90deg) CCW cube Spin 
+# 5) Example 'F1R1S3' means: 1x cube Flip, 1x (90deg) CW rotation of the 1st (Down) layer, 1x (90deg) CCW cube Spin
 #
 #############################################################################################################
 """
@@ -41,53 +42,53 @@ After scanning the 6th cube face, the U face is perfectly on the bottom, so bett
 
 
 v_faces{}   _______
-           |       |
-           | ['U'] |
-           |_______|     h_faces{}  _______ _______ _______
-           |       |               |       |       |       |
-           | ['F'] |               | ['L'] | ['F'] | ['R'] |
-           |_______|               |_______|_______|_______|
-           |       |
-           | ['D'] |
-           |_______|
+            |       |
+            | ['U'] |
+            |_______|     h_faces{}  _______ _______ _______
+            |       |               |       |       |       |
+            | ['F'] |               | ['L'] | ['F'] | ['R'] |
+            |_______|               |_______|_______|_______|
+            |       |
+            | ['D'] |
+            |_______|
 
 by knowing 5 faces, the 6th (B face) is also known ;-)
 """
-
+#endregion initial comments
 
 # Global variable
 # Below dict has all the possible robot movements, related to the cube solver string
 # Original moves with spins and rotates only 90 degrees
 # moves_dict = {'U1':'F2R1S3', 'U2':'F2R1S3R1S3', 'U3':'F2S1R3',
-              # 'D1':'R1S3',   'D2':'R1S3R1S3',   'D3':'S1R3',
-              # 'F1':'F1R1S3', 'F2':'F1R1S3R1S3', 'F3':'F1S1R3',
-              # 'B1':'F3R1S3', 'B2':'F3R1S3R1S3', 'B3':'F3S1R3',
-              # 'L1':'S3F3R1', 'L2':'S3F3R1S3R1', 'L3':'S1F1R3',
-              # 'R1':'S3F1R1', 'R2':'S3F1R1S3R1', 'R3':'S1F3R3'}
+            # 'D1':'R1S3',   'D2':'R1S3R1S3',   'D3':'S1R3',
+            # 'F1':'F1R1S3', 'F2':'F1R1S3R1S3', 'F3':'F1S1R3',
+            # 'B1':'F3R1S3', 'B2':'F3R1S3R1S3', 'B3':'F3S1R3',
+            # 'L1':'S3F3R1', 'L2':'S3F3R1S3R1', 'L3':'S1F1R3',
+            # 'R1':'S3F1R1', 'R2':'S3F1R1S3R1', 'R3':'S1F3R3'}
 
 # Move dictionary if the cube servo is at home
 moves_dict_home = {'U1':'F2R1',     'U2':'F2S3R0',   'U3':'F2R3',
-                   'D1':'R1',       'D2':'S3R0',     'D3':'R3',
-                   'F1':'F1R1',     'F2':'F1S3R0',   'F3':'F1R3',
-                   'B1':'F3R1',     'B2':'F3S3R0',   'B3':'F3R3',
-                   'L1':'S1F1S3R1', 'L2':'S1F1S4R0', 'L3':'S1F1R3',
-                   'R1':'S3F1R1',   'R2':'S3F1R0',   'R3':'S3F1S1R3'}
+                'D1':'R1',       'D2':'S3R0',     'D3':'R3',
+                'F1':'F1R1',     'F2':'F1S3R0',   'F3':'F1R3',
+                'B1':'F3R1',     'B2':'F3S3R0',   'B3':'F3R3',
+                'L1':'S1F1S3R1', 'L2':'S1F1S4R0', 'L3':'S1F1R3',
+                'R1':'S3F1R1',   'R2':'S3F1R0',   'R3':'S3F1S1R3'}
 
 # Move dictionary if the cube servo is at CW position
 moves_dict_cw =   {'U1':'F2S3R1',   'U2':'F2R4',     'U3':'F2R3',
-                   'D1':'S3R1',     'D2':'R4',       'D3':'R3',
-                   'F1':'F1S3R1',   'F2':'F1R4',     'F3':'F1R3',
-                   'B1':'F3S3R1',   'B2':'F3R4',     'B3':'F3R3',
-                   'L1':'S3F3R1',   'L2':'S3F3S3R0', 'L3':'S3F3R3',
-                   'R1':'S3F1R1',   'R2':'S3F1S3R0', 'R3':'S3F1R3'}
+                'D1':'S3R1',     'D2':'R4',       'D3':'R3',
+                'F1':'F1S3R1',   'F2':'F1R4',     'F3':'F1R3',
+                'B1':'F3S3R1',   'B2':'F3R4',     'B3':'F3R3',
+                'L1':'S3F3R1',   'L2':'S3F3S3R0', 'L3':'S3F3R3',
+                'R1':'S3F1R1',   'R2':'S3F1S3R0', 'R3':'S3F1R3'}
 
 # Move dictionary if the cube servo is at CCW position
 moves_dict_ccw =  {'U1':'F2R1',     'U2':'F2R0',     'U3':'F2S1R3',
-                   'D1':'R1',       'D2':'R0',       'D3':'S1R3',
-                   'F1':'F1R1',     'F2':'F1R0',     'F3':'F1S1R3',
-                   'B1':'F3R1',     'B2':'F3R0',     'B3':'F3S1R3',
-                   'L1':'S1F1R1',   'L2':'S1F1S3R0', 'L3':'S1F1R3',
-                   'R1':'S1F3R1',   'R2':'S1F3S3R0', 'R3':'S1F3R3'}
+                'D1':'R1',       'D2':'R0',       'D3':'S1R3',
+                'F1':'F1R1',     'F2':'F1R0',     'F3':'F1S1R3',
+                'B1':'F3R1',     'B2':'F3R0',     'B3':'F3S1R3',
+                'L1':'S1F1R1',   'L2':'S1F1S3R0', 'L3':'S1F1R3',
+                'R1':'S1F3R1',   'R2':'S1F3S3R0', 'R3':'S1F3R3'}
 
 
 def starting_cube_orientation(simulation=False):
@@ -100,34 +101,30 @@ def starting_cube_orientation(simulation=False):
         
         
         Case of simulation:
-        v_faces{}   _______       
-                   |       |
-                   | ['U'] |
-                   |_______|     h_faces{}  _______ _______ _______ 
-                   |       |               |       |       |       |
-                   | ['F'] |               | ['L'] | ['F'] | ['R'] |
-                   |_______|               |_______|_______|_______|
-                   |       |
-                   | ['D'] |
-                   |_______|    
+        v_faces{}   _______
+                    |       |
+                    | ['U'] |
+                    |_______|     h_faces{}  _______ _______ _______
+                    |       |               |       |       |       |
+                    | ['F'] |               | ['L'] | ['F'] | ['R'] |
+                    |_______|               |_______|_______|_______|
+                    |       |
+                    | ['D'] |
+                    |_______|
 
-        
-        
+
         Cube orientation after scanning (no simulation):
-        v_faces{}   _______       
-                   |       |
-                   | ['L'] |
-                   |_______|     h_faces{}  _______ _______ _______ 
-                   |       |               |       |       |       |
-                   | ['U'] |               | ['F'] | ['U'] | ['B'] |
-                   |_______|               |_______|_______|_______|
-                   |       |
-                   | ['R'] |
-                   |_______|
-              
-        
+        v_faces{}   _______
+                    |       |
+                    | ['L'] |
+                    |_______|     h_faces{}  _______ _______ _______
+                    |       |               |       |       |       |
+                    | ['U'] |               | ['F'] | ['U'] | ['B'] |
+                    |_______|               |_______|_______|_______|
+                    |       |
+                    | ['R'] |
+                    |_______|
         """
-    
     
     global h_faces,v_faces                  # global variables used
     
@@ -140,10 +137,6 @@ def starting_cube_orientation(simulation=False):
         # Cube orientation after scanning, later updated after every cube movement on the robot
         h_faces={'L':'F','F':'U','R':'B'}   # dict with faces around the bottom/upper positioned faces
         v_faces={'U':'L','F':'U','D':'R'}   # dict with faces around the left/right positioned faces
-
-
-
-
 
 
 def opp_face(face):
@@ -159,10 +152,6 @@ def opp_face(face):
         return 'Error'
 
 
-
-
-
-
 def flip_effect(h_faces,v_faces):
     """ Returns the cube faces orientation after a single Flip action; Only v_faces are affected
         It applies a face shift of these faces, and updates the F face on the h_faces dict."""
@@ -173,10 +162,6 @@ def flip_effect(h_faces,v_faces):
     h_faces['F']=v_faces['F']
 
 
-
-
-
-
 def spinCCW_effect(h_faces,v_faces):
     """ Returns the cube faces orientation after a single CCW spin action; Only h_faces are affected
         It applies a face shiftof these faces, and updates the F face on the v_faces dict."""
@@ -185,10 +170,6 @@ def spinCCW_effect(h_faces,v_faces):
     h_faces['F']=h_faces['R']
     h_faces['R']=opp_face(h_faces['L'])
     v_faces['F']=h_faces['F']
-       
-
-
-
 
 
 def spinCW_effect(h_faces,v_faces):
@@ -199,10 +180,6 @@ def spinCW_effect(h_faces,v_faces):
     h_faces['F']=h_faces['L']
     h_faces['L']=opp_face(h_faces['R'])
     v_faces['F']=h_faces['F']
-
-
-
-
 
 
 def cube_orient_update(movement):
@@ -260,10 +237,6 @@ def adapt_move(move):
         return 'B'+rotations                      # the face to be turned must be the 6th one, the B side
 
 
-
-
-
-
 def optim_moves1(moves, informative):
     """Removes unnecessary moves that would cancel each other out, to reduce solving moves and time
     These movements are for instance a spin CW followed by a spin CCW, or viceversa."""
@@ -317,10 +290,6 @@ def optim_moves1(moves, informative):
 #             print("len new_moves at opt1:", len(new_moves))
         opt1 = 1                                    # opt2 is increased to 1
         return new_moves, opt1                      # the new string of robot moves is returned
-
-
-
-
 
 
 def optim_moves2(moves, informative):
@@ -393,10 +362,6 @@ def optim_moves2(moves, informative):
             return new_moves, opt2       # the new string of robot moves is returned
 
 
-
-
-
-
 def count_moves(moves):
     """Counts the total amount of robot movements."""
 
@@ -413,10 +378,6 @@ def count_moves(moves):
             robot_tot_moves+=1        # increases by 1 (cannot be more) the total amount of robot movements
     
     return robot_tot_moves            # total amount of robot moves is returned
-
-
-
-
 
 
 def get_new_cube_angle(initial_angle, sequence):
@@ -440,9 +401,6 @@ def get_new_cube_angle(initial_angle, sequence):
 
     # print("Init Angle: %d, %s, New Angle:%d" % (initial_angle, sequence, new_angle))
     return new_angle
-
-
-
 
 
 def robot_required_moves(solution, solution_Text, simulation, informative=False):
@@ -503,16 +461,11 @@ def robot_required_moves(solution, solution_Text, simulation, informative=False)
     return robot, moves, robot_tot_moves, opt  # returns a dict with all the robot moves, string with all the moves and total robot movements
 
 
-
-
-
-
 if __name__ == "__main__":
     """ This function convert the cube solution string 'U2 L1 R1 D2 B2 R1 D2 B2 D2 L3 B3 R3 F2 D3 L1 U2 F2 D3 B3 D1' in robot moves
         Robot moves are printed on the REPL
         Robot moves are translated to servo moves: Initially are print per ach of the cube solving string manoeuvre
-        Afterward all the strings are combined in a single string, for the Cubotino_servo.py module to control the servos."""  
-    
+        Afterward all the strings are combined in a single string, for the Cubotino_servo.py module to control the servos."""
     
 #93-87    solution = 'U2 L1 R1 D2 B2 R1 D2 B2 D2 L3 B3 R3 F2 D3 L1 U2 F2 D3 B3 D1' # this cube solution allows type 1 optimization (at least 2 Spins removal)
     solution = 'U2 D2 R2 L2 F2 B2'  # this cube solution allows type 2 optimization (2 flips removal)
@@ -526,16 +479,14 @@ if __name__ == "__main__":
     print("Number '1' for S ans R identifies CW rotation, by loking to the bottom face, while number '3' stands for CCW")
     print("Example 'F1R1S3' means: 1x cube Flip, 1x (90deg) CW rotation of the 1st (bottom) layer, 1x (90deg) CCW cube Spin")
     print()
-    
 
-    
     simulation = False
     informative = False
     solution_Text = ""
     robot, moves, robot_tot_moves, opt = robot_required_moves(solution, solution_Text, simulation, informative)
     print(f'\nnumber of robot movements: {robot_tot_moves}')
     
-    print()    
+    print()
     print(f'robot movements: ')
     
     servo_moves=""
@@ -544,4 +495,4 @@ if __name__ == "__main__":
         servo_moves+=moves
     
     print(f'\nstring command to the robot servos driver: {moves}\n')
-    
+

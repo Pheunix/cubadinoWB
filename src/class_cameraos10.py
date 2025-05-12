@@ -13,7 +13,7 @@
 #############################################################################################################
 """
 
-from Cubotino_T_settings_manager import settings as settings  # settings manager Class
+from class_settings_manager import settings as settings  # settings manager Class
 from picamera.array import PiRGBArray        # Raspberry Pi specific package for the camera, using numpy array
 from picamera import PiCamera                # Raspberry Pi specific package for the camera
 import time
@@ -27,7 +27,7 @@ class Camera:
         print("\nLoading camera parameters")             # feedback is printed to the terminal
         sett = settings.get_settings()                   # settings are retrieved from the settings Class
         
-        camera_width_res = sett['camera_width_res']      # Picamera resolution on width 
+        camera_width_res = sett['camera_width_res']      # Picamera resolution on width
         camera_height_res = sett['camera_hight_res']     # Picamera resolution on heigh
         s_mode = sett['s_mode']                          # camera setting mode (pixels binning)
         self.kl = sett['kl']                             # coff. for PiCamera stability acceptance
@@ -42,25 +42,20 @@ class Camera:
         self.rawCapture = PiRGBArray(self.cam)           # returns (uncoded) RGB array from the camera
         self.cam.resolution = (self.width, self.height)  # camera.resolution is an attribute, not a method 
 
-    
     def get_width(self):
         return self.cam.resolution[0]
-    
     
     def get_height(self):
         return self.cam.resolution[1]
     
-    
     def get_binning(self):
         return self.cam.sensor_mode
-    
     
     def get_frame(self):
         self.cam.capture(self.rawCapture, format='bgr')  # bgr is the picamera format compatible with CV2
         self.frame = self.rawCapture.array               # picamera array allows usage of numpy array
         self.rawCapture.truncate(0)                      # empties the array in between each camera's capture
         return self.frame
-    
     
     def get_fname_AF(self, fname, pos):
         return fname[:-4] + '_AF' + str(pos+1) + '.txt'
@@ -80,15 +75,13 @@ class Camera:
         c = f'\nPiCamera mode (binning): {binning}'      # feedback is printed to the terminal
         return a + b + c
     
-    
     def close_camera(self):
         self.cam.close()
         return 'camera closed'
     
-
     def set_auto(self, debug):
         self.cam.exposure_mode = 'auto'  # set to auto exposure at the start, to adjust according to light conditions
-        time.sleep(0.05)              # not found documentation if a delay is needed after this PiCamera setting 
+        time.sleep(0.05)              # not found documentation if a delay is needed after this PiCamera setting
         self.cam.awb_mode = 'auto'    # set to auto white balance at the start, to adjust according to light conditions
         time.sleep(0.05)              # not found documentation if a delay is needed after this PiCamera setting
         self.cam.shutter_speed = 0    # set to shutter speed to auto at the start, to adjust according to light conditions
@@ -96,7 +89,6 @@ class Camera:
         if debug:                     # case debug variable is set true on __main__
             print('Camera set in auto mode')   # feedback is printed to the terminal
         
-
     def get_metadata(self):
         a_gain=self.cam.analog_gain                   # analog gain is inquired to the PiCamera
         d_gain=self.cam.digital_gain                  # digital gain is inquired to the PiCamera
@@ -104,9 +96,8 @@ class Camera:
         exposure=self.cam.exposure_speed              # exposure is inquired to the PiCamera
         return a_gain, d_gain, awb_gains, exposure    # fains and exposure are returned
             
-            
     def set_gains(self, debug, a_gain, d_gain, awb_gains):
-        import Cubotino_T_set_picamera_gain as camera_set_gains  # script that allows to fix some parameters at picamera
+        import set_picamera_gain as camera_set_gains  # script that allows to fix some parameters at picamera
         self.cam.awb_mode = 'off'                     # sets white balance off
         time.sleep(0.05)                              # small (arbitrary) delay after setting a new parameter to PiCamera
         self.cam.awb_gains = awb_gains                # sets AWB gain to PiCamera, for consinsent images 
@@ -120,28 +111,21 @@ class Camera:
         if debug:                                     # case debug variable is set true
             print('Camera set in manual mode')        # feedback is printed to the terminal
 
-
-
     def get_exposure(self):
         return self.cam.exposure_speed
     
-    
     def set_exposure(self, shutter_time):
         self.cam.shutter_speed = shutter_time         # sets the shutter time to the PiCamera, for consistent images
-        time.sleep(0.05)                              # small (arbitrary) delay after setting a new parameter to PiCamera 
+        time.sleep(0.05)                              # small (arbitrary) delay after setting a new parameter to PiCamera
         
-
-
-
-
 
 camera = Camera()
 
+'''
 if __name__ == "__main__":
     """the main function can be used to test the camera. """
-
 
     print(camera.binning)
     print(camera.cam.resolution)
     print(camera.debug)
-
+'''

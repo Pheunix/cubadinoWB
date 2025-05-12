@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # coding: utf-8
 
+#region osef
 """
 #############################################################################################################
 #  Andrea Favero, 31 May 2024
@@ -40,6 +41,7 @@ version = '7.4 (31 May 2024)'
 ################  setting argparser for robot remote usage, and other settings  #################
 import argparse
 
+#region parse
 # argument parser object creation
 parser = argparse.ArgumentParser(description='CLI arguments for Cubotino_T.py')
 
@@ -107,6 +109,7 @@ args = parser.parse_args()        # argument parsed assignement
 print("\n\nPassed arguments:")    # feedback is printed to the terminal
 print(''.join(f'{k}={v}\n' for k,v in vars(args).items())) # arguments values are printed to the terminal
 # ###############################################################################################
+#endregion parse
 
 import sys                                               # sys library is imported
 
@@ -419,7 +422,7 @@ def robot_camera_setting(debug, os_version, camera, face):
     if Rpi_ZeroW:             # case a ZeroW board is used
         t_max = 3*t_max       # max time for camera setting is increased
     
-    ku = 2-kl                 # Upper koefficient to define acceptance bandwidth (default +/-5%)
+    ku = 2-kl                 # Upper koefficient to define acceptance bandwidth (default +/-5%) 
 
     a_gain_list=[]                                     # list to store the Picamera analog gain, during pre-scan period
     d_gain_list=[]                                     # list to store the Picamera digital gain, during pre-scan period
@@ -2810,7 +2813,7 @@ def robot_to_cube_side(side, cam_led_bright):
 
 
 def robot_move_cube(robot_moves, total_robot_moves, solution_Text, start_time, scrambling=False):
-    """This fuction calls the robot servo function to apply the solving movements to the cube; Arguments of this function are:
+    """This function calls the robot servo function to apply the solving movements to the cube; Arguments of this function are:
         - robot_moves, a string with the calculated movements for the robot based on the kociemba solution
         - total_robot_moves value, used to visualize on display a robot moves count-down
         - solution_Text, used to detect error cases on the Kociemba solution."""
@@ -2828,7 +2831,7 @@ def robot_move_cube(robot_moves, total_robot_moves, solution_Text, start_time, s
         robot_status = 'Servos_disabled' # string indicating the robot status
         robot_time = 1000             # robot_time set to 1000, clearly different from robot usual time
         
-    if solution_Text == 'Error':      # if there is an error (tipicallya bad color reading, leading to wrong amount of facelets per color)                                      
+    if solution_Text == 'Error':      # if there is an error (tipicallya bad color reading, leading to wrong amount of facelets per color)
         print('An error occured')                              # error feedback is print at terminal
         robot_solving_time = 0                                 # robot solving time is set to zero to underpin the error
         tot_robot_time = time.time()-start_time                # total robot time is calculated
@@ -2841,7 +2844,7 @@ def robot_move_cube(robot_moves, total_robot_moves, solution_Text, start_time, s
             solved = True                                      # solved variable is set True
             tot_robot_time, robot_solving_time = robot_time_to_solution(start_time, start_robot_time,\
                                                                         total_robot_moves)  # cube solved function is called
-            disp.show_on_display('CUBE', 'SOLVED !', y1=22, fs1=36)     # feedback is printed to the display 
+            disp.show_on_display('CUBE', 'SOLVED !', y1=22, fs1=36)     # feedback is printed to the display
             if total_robot_moves != 0:                         # case the robot had to move the cube to solve it
                 if not silent:                                 # case silent variable is set False
                     servo.fun(print_out=debug)                 # cube is rotated CW-CCW for few times, as victory FUN 'dance'
@@ -2930,7 +2933,7 @@ def robot_solve_cube(fixWindPos, screen, frame, faces, cube_status, cube_color_s
             for col in cols:                                                  # iteration over the colors
                 if col not in cube_color_sequence:                            # case col is not in cube_color_sequence
                     # this happens when not 6 different colors are detected at centers
-                    animate = False                                           # animate is set False 
+                    animate = False                                           # animate is set False
                     break                                                     # for loop is interrupted
 
             if animate:                                                       # case animate is (still) set True
@@ -3060,6 +3063,43 @@ def log_data(timestamp, facelets_data, cube_status_string, solution, color_detec
             tot_robot_time, start_time, camera_ready_time, cube_detect_time, cube_solution_time,\
             robot_solving_time, os_version):
     
+    #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    #       cube2 initialisation
+    #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    try:
+        import Affichage as aff
+        FaceColor = aff.FaceColor  # taking the FaceColor enum from Affichage
+    except:
+        raise ImportError('Affichage module already imported or not found')
+    
+    def cube_string_to_face_colors(cube_status_string):
+        """
+        Convertit une chaîne d'état du cube (54 caractères) en un dictionnaire
+        compatible avec init_cubies (format similaire à TARGET_CUBE2_COLORS).
+        """
+        # Mapping des lettres vers les couleurs RGB utilisées dans FaceColor
+        color_map = {
+            'U': FaceColor.WHITE.value,
+            'D': FaceColor.YELLOW.value,
+            'F': FaceColor.GREEN.value,
+            'B': FaceColor.BLUE.value,
+            'L': FaceColor.ORANGE.value,
+            'R': FaceColor.RED.value,
+        }
+        # Ordre des faces dans la chaîne d'état
+        faces = ['U', 'R', 'F', 'D', 'L', 'B']
+        face_colors = {}
+        idx = 0
+        for face in faces:
+            face_colors[face] = []
+            for _ in range(9):
+                letter = cube_status_string[idx]
+                face_colors[face].append(color_map.get(letter, FaceColor.BLACK.value))
+                idx += 1
+        return face_colors
+
+    aff.cube2.init_cubies(cube_string_to_face_colors(cube_status_string))
+    
     """ Main cube info are logged in a text file
     This function is called obly on the robot (Rpi), to generate a database of info usefull for debug and fun
     BGR color distance is the first approach used to detect cube status, therefore the winner if it succedes.
@@ -3093,7 +3133,7 @@ def log_data(timestamp, facelets_data, cube_status_string, solution, color_detec
         o = 'OS_ver'                                    # 14th column header
         p = 'FCS'                                       # 15th column header
         
-        # tab separated string of the the headers
+        # tab separated string of the headers
         log_data = (a,b,c,d,e,f,g,h,i,k,l,m,n,o,p)      # tuple with the columns headers
         log_data_len = len(log_data)                    # elements in tuple
         s=''                                            # empty string is assigned to the variable s
@@ -3106,13 +3146,13 @@ def log_data(timestamp, facelets_data, cube_status_string, solution, color_detec
         
         os.umask(0) # The default umask is 0o22 which turns off write permission of group and others
         
-        # 'a'means: file will be generated if it does not exist, and data will be appended at the end
+        # 'a' means: file will be generated if it does not exist, and data will be appended at the end
         with open(os.open(fname, os.O_CREAT | os.O_WRONLY, 0o777), 'a') as f:    # text file is temporary opened
             f.write(s)                                  # data is appended
     
     else:                                               # case the file does exist
         check_headers(folder, fname)                    # checks if necessary to add new headers to the log file
-    
+        
     # info to log
     a=str(timestamp)                                    # date and time
     b=frameless_cube                                    # frameless cube setting
@@ -3122,7 +3162,7 @@ def log_data(timestamp, facelets_data, cube_status_string, solution, color_detec
     f=str(round(cube_detect_time-camera_ready_time,1))  # time to read the 6 cube faces
     g=str(round(cube_solution_time-cube_detect_time,1)) # time to get the cube solution from the solver
     h=str(round(robot_solving_time,1))                  # time to manoeuvre the cube to solve it
-    i=str(facelets_data)                                # according to which methos delivered the solution (BGR, HSV, both)
+    i=str(facelets_data)                                # according to which methods delivered the solution (BGR, HSV, both)
     k=str(cube_status_string)                           # string with the detected cbe status
     l=str(solution)                                     # solution returned by Kociemba solver
     m='screen'if screen else 'no screen'                # screen presence or absence (it influences the cube detection time)
@@ -3379,7 +3419,7 @@ def start_solving(solv_cycle):
         3) manage the solving end, when interrupted."""
 
     print('\n'*6)               # prints some empty lines, on IDE terminal
-    clear_terminal()            # cleares the terminal
+    clear_terminal()            # clears the terminal
     print('#'*80)
     print('#'*23, '       SOLVING CYCLE  ', str(solv_cycle).zfill(2), '      ', '#'*23)
     print('#'*80)
@@ -4345,8 +4385,6 @@ def cubeAF():
                             print(f'Camera warm-up, camera setting, cube status (BGR_dom), and solution, in: {round(time.time()-start_time,1)} secs')
                         # #############################################################################################
                         
-                        
-                        
                         if 'Error' in solution_Text:                       # in case color color detection fail also with HSV approach
                             color_detection_winner='Error'                 # the winner approach goes to error, for log purpose
                             
@@ -4359,12 +4397,10 @@ def cubeAF():
                         # function related to cube solving via the robot
                         robot_solve_cube(fixWindPos, screen, frame, faces, cube_status, cube_color_seq, HSV_analysis,
                                         URFDLB_facelets_BGR_mean, URFDLB_facelets_BGR_dom, font, fontScale, lineType,
-                                        show_time, timestamp,solution, solution_Text, color_detection_winner,
+                                        show_time, timestamp, solution, solution_Text, color_detection_winner,
                                         cube_status_string, BGR_mean, HSV_detected, BGR_dom, start_time,
                                         camera_ready_time, cube_detect_time, cube_solution_time, os_version)
-                        
                         return              # closes the cube reading/solver function in case it reaches the end
-                
                 
                 # case there are less than 9 contours detected, yet shown on screen as feedback
                 if screen and not robot_stop:        # case screen variable is set True
@@ -4381,6 +4417,7 @@ def cubeAF():
         quit_func(quit_script=False)                 # quit function is called, withou forcing the script quitting
         return                                       # cubeAF function is terminated
 
+#endregion osef
 
 if __name__ == "__main__":
     """ This function takes care of few things:
@@ -4392,9 +4429,10 @@ if __name__ == "__main__":
     global Rpi_ZeroW, cycles_num, picamera_test, quit_script
 
     import sys, time
+    import Affichage as aff
     clear_terminal()        # cleares the terminal
 
-
+    #region init
     ################    Initial settings on how the robot is operated ###############################
     cycles_num = 0          # zero is assigned to the (automated) cycles_num variable
     solv_cycle = 0          # variable to count the solving cycles per session is set to zero
@@ -4463,8 +4501,8 @@ if __name__ == "__main__":
         if args.dominant:             # case the Cubotino_T.py has been launched with 'dominant' argument
             dominant = True           # flag to enable/disable the dominant color analysis is set True
     # ###############################################################################################
-    
-    
+    #endregion init
+    #region lancement
     ################    Importing settings from the JSON files #####################################
     print('\nGeneral settings:')            # feedback is printed to the terminal
     if debug:                               # case the debug print-out are requested
@@ -4534,14 +4572,19 @@ if __name__ == "__main__":
     disp.show_on_display('OS: '+ os_ver_txt, 'Script V:'+ script_v, fs1=18, fs2=18) #feedbak is print to to the display
     time.sleep(3)                          # time delay to let possible readig the display
     # ###############################################################################################
+    #endregion lancement
     
-    
+    #region screen
     ################    screen presence, a pre-requisite for graphical   ############################
     screen_presence = check_screen_presence()             # checks if a screen is connected (also via VNC)
     
     if debug:                                             # case the debug print-out are requested
         print("Screen_presence: ",screen_presence)        # feedback is printed to the terminal
     
+    
+    #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Changements !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     if not screen_presence:                               # case there is not a screen connected
         print(f'Screen related function are not activated')   # feedback is printed to the terminal
         debug = False                                     # debug flag is set False
@@ -4601,7 +4644,7 @@ if __name__ == "__main__":
         if not btn:                                       # case the btn is set False
             print(f'\nButton is ignored, solving cycles start automatically')   # feedback is printed to the terminal
     # ###############################################################################################
-    
+    #endregion screen
     
     ###################################    import libraries    ######################################
     # libraries are imported after the settings, to feedback progress at the display
@@ -4609,6 +4652,7 @@ if __name__ == "__main__":
     import_libraries()                      # imports libraries
     # ###############################################################################################
     
+    aff.main()
     
     ###########################  parsing arguments for robot remote usage  ##########################
     if args.cycles != None:                 # case the Cubotino_T.py has been launched with 'cycles' argument
@@ -4668,7 +4712,7 @@ if __name__ == "__main__":
 
         if automated:                           # case automated variable is True
             for i in range(cycles_num):         # iteration over the number passed to the --cycles argument
-                start_automated_cycle(i+1, cycles_num, cycle_pause)  # start_automated_cycle finction is called
+                start_automated_cycle(i+1, cycles_num, cycle_pause)  # start_automated_cycle function is called
                 
                 if i+1 < cycles_num:            # case there is at least one more cycle to do
                     # preparing the camera and variables for the next solving cycle
@@ -4677,7 +4721,7 @@ if __name__ == "__main__":
                     timeout = False             # flag used to limit the cube facelet detection time
                     close_camera()              # this is necessary to get rid of analog/digital gains previously used
                     time.sleep(0.5)             # little delay between the camera closing, and a new camera opening
-                    camera, width, height = set_camera()  # camera has to be re-initialized, to removes previous settings
+                    camera, width, height = set_camera()  # camera has to be re-initialized, to remove previous settings
                 
                 if i+1 == cycles_num:           # case all the cycles have been done
                     # closing the automated cycles section

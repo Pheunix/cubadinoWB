@@ -35,7 +35,6 @@ class Pigpiod:
             print("\nAlready activated pigpiod")       # feedback is printed to the terminal
             pass
 
-
     def start_pigpio_daemon(self):
         """from https://forums.raspberrypi.com/viewtopic.php?t=175448."""
         p = Popen("sudo pigpiod", stdout=PIPE, stderr=PIPE, shell=True)
@@ -49,7 +48,6 @@ class Pigpiod:
         else:
             return 2 # error
 
-
     def stop_pigpio_daemon(self):
         """from https://forums.raspberrypi.com/viewtopic.php?t=175448."""
         p = Popen("sudo killall pigpiod", stdout=PIPE, stderr=PIPE, shell=True)
@@ -62,15 +60,9 @@ class Pigpiod:
             return 2 # error
 
 
-
-
 pigpiod = Pigpiod()
 
 if __name__ == "__main__":
     """the main function can be used to test the pigpiod status . """
 
     display.test1_display()
-
-
-    
-

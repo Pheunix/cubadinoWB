@@ -36,8 +36,6 @@ class Settings:
         self.load_settings()                              # loads settings
 
 
-
-
     def load_settings(self):
         """Calls the function to read and parse the settings."""
         
@@ -46,8 +44,6 @@ class Settings:
         
         self.s = self.parse_settings(s)                        # converts settings to correct datatype
         self.servos_s = self.parse_servos_settings(servos_s)   # converts servos settings to correct datatype
-
-
 
 
     def get_macs_AF(self, folder):
@@ -65,13 +61,9 @@ class Settings:
         return tuple(macs_AF)                             # list is converted to tuple and returned
 
 
-
-
     def get_fname_AF(self, fname, pos):
         """Generate settings filenames for AF robot."""
         return fname[:-4] + '_AF' + str(pos+1) + '.txt'
-
-
 
 
     def check_local_settings(self):
@@ -109,15 +101,9 @@ class Settings:
                 print(f"One time action: Creating local settings file {fname}")  # feedback is printed to the terminal
 
 
-
-
-
     def get_settings(self):
         """Returns the general robot settings dict."""
         return self.s
-
-
-
 
 
     def get_servos_settings(self, reload=False):
@@ -126,9 +112,6 @@ class Settings:
             self.load_settings()
         return self.servos_s
         
-
-
-
 
 
     def get_settings_fname(self):
@@ -141,9 +124,6 @@ class Settings:
         return fname                                              # return folder and file name for the settings
 
 
-
-
-
     def get_servo_settings_fname(self):
         fname = 'Cubotino_T_servo_settings.txt'                   # file name with servos settings
         if self.eth_mac in self.macs_AF:                          # case the script is running on AF (Andrea Favero) robot
@@ -152,9 +132,6 @@ class Settings:
         else:                                                     # case the script is not running on AF (Andrea Favero) robot
             fname = os.path.join(self.folder,fname)               # folder and file name for the settings, to be tuned
         return fname                                              # return folder and file name for the servos settings
-
-
-
 
 
     def read_settings(self, fname=''):
@@ -176,10 +153,6 @@ class Settings:
             print('Could not find the file: ', fname)             # feedback is printed to the terminal
             s = {}                                                # empty dict is assigned to s
         return s                                                  # settings dict is returned
-
-
-
-
 
 
     def parse_settings(self, s):
@@ -268,11 +241,6 @@ class Settings:
             sys.exit(1)                                           # script is quitted with error
 
 
-
-
-
-
-
     def read_servos_settings(self, fname=''):
         """Function reading the Cubotino_T_servo_settings.txt . Retrieves a dict with parameters and settings."""
         
@@ -287,14 +255,11 @@ class Settings:
             servo_s = self.update_servos_settings_file(fname, servo_s, json)
             
             backup_fname = 'Cubotino_T_servo_settings_backup.txt' # filename for the backup
-            self.save_backup(backup_fname, servo_s)               # servos settings are saved on a backup file      
+            self.save_backup(backup_fname, servo_s)               # servos settings are saved on a backup file
         else:                                                     # case the servo_settings file does not exists, or name differs
-            print('Could not find Cubotino_T_servo_settings.txt') # feedback is printed to the terminal                                  
+            print('Could not find Cubotino_T_servo_settings.txt') # feedback is printed to the terminal
             servo_s = {}                                          # empty dict is assigned to servo_s
         return servo_s                                            # return empty dict
-
-
-
 
 
     def parse_servos_settings(self, servo_s):
@@ -340,15 +305,6 @@ class Settings:
 #             servo_s['b_rotate_time'] = float(servo_s['b_rotate_time'])          # time for Cube_holder to rotate 90 deg (cube constrained)
 #             servo_s['b_rel_time'] = float(servo_s['b_rel_time'])                # time for Cube_holder to release tension at home, CCW and CW positions
 #             return servo_s                                                      # return servos settings dict
-                
-
-        
-        
-        
-
-
-
-
 
 
     def save_setting(self, fname, data, debug=False):
@@ -379,10 +335,6 @@ class Settings:
             self.s = self.parse_settings(data)                   # settings datatypes are parsed
 
 
-
-
-
-
     def save_backup(self, fname, data):
         """Saves a backup copy of the settings data."""
         
@@ -393,10 +345,6 @@ class Settings:
         with open(os.open(backup_fname, os.O_CREAT | os.O_WRONLY, 0o777), 'w') as f:  # settings_backup file is opened in writing mode
             f.write(json.dumps(data, indent=0))                  # content of the setting file is saved in another file, as backup
             f.truncate()  # truncates the file (prevents older characters at file-end, if new content is shorter)
-
-
-
-
 
 
     def load_previous_settings(self, servo=False):
@@ -439,11 +387,6 @@ class Settings:
                 self.s = self.parse_settings(s)                  # settings datatypes are parsed
                 print(f"\nNot found backup files, uploaded settings from file: {fname}")
                 return self.s                                    # settings dict, from the Json file, is returned
-            
-
-
-
-
 
 
     def backups_cleanup(self, fname, n):
@@ -456,10 +399,6 @@ class Settings:
                 os.remove(backup_files[-1])                      # the oldest backup file is deleted
                 print(f"Erased the {n+1} oldest backup file:{backup_files[-1]}")  # feedback is printed to the terminal
                 backup_files = sorted(glob.iglob(backup_fname), key=os.path.getctime, reverse=True) # ordered list of backuped settings files 
-
-
-
-
 
 
     def update_settings_file(self, fname, s):
@@ -515,7 +454,7 @@ class Settings:
         if 'disp_flip' not in s_keys:
             s['disp_flip'] = 'false'
             any_change = True
-         
+
         if any_change:
             print('\nOne time action: Adding new parameters to the Cubotino_T_settings.txt')
             print('Action necessary for compatibility with the latest downloaded Cubotino_T.py \n')
@@ -524,10 +463,6 @@ class Settings:
                 f.truncate()  # truncates the file (prevents older characters at file-end, if new content is shorter)
         
         return s
-
-
-
-
 
 
     def update_servos_settings_file(self, fname, servo_s, json):
@@ -560,7 +495,7 @@ class Settings:
                 any_change = True
             del servo_s['b_extra_sides']   # setting used up to 05 April 2023 is deleted
             
-        if 't_rel_time' not in s_keys: 
+        if 't_rel_time' not in s_keys:
             servo_s['t_rel_time'] = float(0)  # time for Top_cover to release tension from close position
             any_change = True
         
@@ -572,9 +507,6 @@ class Settings:
                 f.truncate()  # truncates the file (prevents older characters at file-end, if new content is shorter)
         
         return servo_s
-
-
-
 
 
 settings = Settings()

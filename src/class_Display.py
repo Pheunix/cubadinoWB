@@ -12,9 +12,8 @@
 """
 
 
-
-from Cubotino_T_settings_manager import settings as settings   # custom library managing the settings from<>to the settings files
-from Cubotino_T_pigpiod import pigpiod as pigpiod  # start the pigpiod server
+from class_settings_manager import settings as settings   # custom library managing the settings from<>to the settings files
+from class_pigpiod import pigpiod as pigpiod  # start the pigpiod server
 from PIL import Image, ImageDraw, ImageFont        # classes from PIL for image manipulation
 import os.path, pathlib                            # libraries for path management
 
@@ -118,30 +117,18 @@ class Display:
             logo_text.text(self.scale_xy((10, 44)), "CUBOT", font=f1, fill=self.bgr((255, 255, 255)))  # text, font, white color
             logo_text.text(self.scale_xy((112, 48)), "ino", font=f2, fill=self.bgr((255, 255, 255)))   # text, font, white color
 
-
-
-
     def bgr(self, c):                             # Function to convert colors for displays that take RGB colors
         if self.disp_colors == 'RGB':
             return ( c[2], c[1], c[0] )
         return c
 
-
-
-
     def fontsize(self, pt):                       # Change font size based on screen scaling factor
         return int(pt * self.fontscale)
-
-
-
 
     def scale_xy( self, coord):                   # Scale (x,y) coordinates based on screen scale
         scaledx = int( coord[0] * self.Xscale)
         scaledy = int( coord[1] * self.Yscale)
         return (scaledx, scaledy)
-
-
-
 
     def scale_rect( self, coord):                 # Scale (x,y,x1,y1) coordinates based on screen scale
         scaledx1 = int( coord[0] * self.Xscale)
@@ -151,22 +138,14 @@ class Display:
         scaled = (scaledx1, scaledy1, scaledx2, scaledy2)
         return scaled
 
-
-
     def set_backlight(self, value):
         """Set the backlight on/off."""
         self.disp.set_backlight(value)
-
-
-
 
     def clean_display(self):
         """ Cleans the display by settings all pixels to black."""
         disp_img = Image.new('RGB', (self.disp_w, self.disp_h), color=self.bgr((0, 0, 0)))  # full black screen as new image
         self.disp.display(disp_img)                                                         # display is shown to display
-
-
-
 
     def show_on_display(self, r1,r2,x1=20,y1=25,x2=20,y2=65,fs1=22,fs2=22):
         """Shows text on two rows, with parameters to generalize this function; Parameters are
@@ -185,27 +164,24 @@ class Display:
         self.disp.display(disp_img)                                       # image is plot to the display
         self.disp.set_backlight(1)                                        # display backlight is set on
 
-
-
-
     def display_progress_bar(self, percent, scrambling=False):
         """ Function to print a progress bar on the display."""
         
         w = default_x                                              # display width, retrieved by display setting
         
-        # percent value printed as text 
+        # percent value printed as text
         fs = 40                 # font size (Scaled in next line)
         font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", self.fontsize(fs))     # font and its size
-        text_x = int(w/2 - (fs*len(str(percent))+1)/2)             # x coordinate for the text starting location         
+        text_x = int(w/2 - (fs*len(str(percent))+1)/2)             # x coordinate for the text starting location
         text_y = 15                                                # y coordinate for the text starting location
         disp_img = Image.new('RGB', (self.disp_w, self.disp_h), color=self.bgr((0, 0, 0))) # full black image
         disp_draw = ImageDraw.Draw(disp_img)                       # image is drawned
         disp_draw.text(self.scale_xy((text_x, text_y)), str(percent)+'%', font=font, fill=self.bgr((255, 255, 255)))    # text with percent value
         
-        # percent value printed as progress bar filling 
+        # percent value printed as progress bar filling
         x = 15                  # x coordinate for the bar starting location
         y = 60                  # y coordinate for the bar starting location
-        gap = 3                 # gap in pixels between the outer border and inner filling (even value is preferable) 
+        gap = 3                 # gap in pixels between the outer border and inner filling (even value is preferable)
         if not scrambling:      # case the robot is solving a cube
             barWidth = 35       # width of the bar, in pixels
         elif scrambling:        # case the robot is scrambling a cube
@@ -222,9 +198,6 @@ class Display:
         self.disp.display(disp_img) # image is plotted to the display
         self.disp.set_backlight(1)  # display backlight is set on
 
-
-
-
     def show_cubotino(self, built_by='', x=25, fs=22):
         """ Shows the Cubotino logo on the display."""
         
@@ -240,9 +213,6 @@ class Display:
             disp_draw.text(self.scale_xy((x, 104)), built_by, font=font3, fill=self.bgr((255, 0, 0)))              # third row text test
         self.disp.display(self.logo)                       # draws the image on the display hardware.
         self.disp.set_backlight(1)                         # display backlight is set on
-
-
-
 
     def show_face(self, side, colours=[]):
         """ Function to print a sketch of the cube face colours."""
@@ -274,11 +244,8 @@ class Display:
                 x = x+d                                    # x coordinate is increased by square side
                 if j == 2: y = y+d                         # once at the third column the row is incremented
                 fclt+=1
-
         self.disp.display(disp_img)                        # image is plotted to the display
 
-    
-    
     def plot_status(self, cube_status, plot_color, startup=False):
         """ Function to print the cube sketch of the cube colors."""
         
@@ -330,9 +297,6 @@ class Display:
         self.disp.display(self.disp_img)                   # image is drawned
         self.disp.set_backlight(1)                         # display backlight is set on
 
-    
-    
-    
     def test1_display(self):
         """ Test showing some text into some rectangles."""
         
@@ -384,16 +348,13 @@ class Display:
         self.disp.set_backlight(0)                                        # display backlight is set off
         print("Display test1 finished\n")                                 # feedback is printed to the terminal
 
-
-
-
     def test2_display(self):
         """ Test showing the Western Rubik's cube face colours."""
         
         print("\nDisplay URF colours sequence of Western Rubik's")
         import time
         colors_bgr = {'white':(255,255,255), 'red':(0,0,204), 'green':(0,132,0),
-                      'yellow':(0,245,245), 'orange':(0,128,255), 'blue':(204,0,0)}   # bright colors assigned to the six faces colors
+                    'yellow':(0,245,245), 'orange':(0,128,255), 'blue':(204,0,0)}   # bright colors assigned to the six faces colors
         colors=('white', 'red', 'green', 'yellow', 'orange', 'blue')  # URF colours sequence in Western Rubik's cube
         for f in range(6):                                            # iteration over 6 (six cube's faces)
             print(colors[f])                                          # feedback is printed to the terminal
@@ -407,17 +368,16 @@ class Display:
         print("Display test2 finished\n")                             # feedback is printed to the terminal
 
 
-
-
 display = Display()
 
+'''
 if __name__ == "__main__":
     """the main function can be used to test the display. """
     
     display.test1_display()
     display.test2_display()
     display.set_backlight(0)
-
+'''
 
 ##### test show_face, random colors #####
 #     import random
@@ -434,5 +394,3 @@ if __name__ == "__main__":
 #         time.sleep(1)
 #     display.set_backlight(0)
 #########################################
-
-    
