@@ -20,7 +20,7 @@ import tkinter as tk                 # GUI library
 from tkinter import ttk              # GUI library
 import datetime as dt                # date and time library used as timestamp on a few situations (i.e. data log)
 import numpy as np                   # array management library
-import time                          # import time library  
+import time                          # import time library
 import os.path                       # os is imported to check for file presence
 
 

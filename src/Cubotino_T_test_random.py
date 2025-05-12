@@ -66,7 +66,7 @@ def imports(plot):
     import Cubotino_T_servos as servo             # custom library for the servos control
     if plot:                                      # case plot is set True (cube status sketch plotting to screen)
         global cv2                                # openCV library is set as global variable
-        print("Loading OpenCV")                   # feedback is printed to terminal to manage thewaiting time         
+        print("Loading OpenCV")                   # feedback is printed to terminal to manage thewaiting time
         import cv2                                # openCV library is imported
 
 

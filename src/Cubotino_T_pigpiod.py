@@ -23,8 +23,8 @@ class Pigpiod:
     def __init__(self):
         
         if not self.pigpiod_once:                      # case self.pigpiod_once is set False
-            ret = self.stop_pigpio_daemon()            # piogpiod service is stopped 
-            time.sleep(0.2)                            # arbitrary delay 
+            ret = self.stop_pigpio_daemon()            # piogpiod service is stopped
+            time.sleep(0.2)                            # arbitrary delay
             ret = self.start_pigpio_daemon()           # piogpiod service is started
             if ret==0 or ret==1:                       # case the pigpio daemon started correctly or was already running
                 print("\nActivated pigpiod")           # feedback is printed to the terminal
@@ -43,7 +43,7 @@ class Pigpiod:
         s_err = p.stderr.readline().decode()
     #     print("out={}\nerr={}".format(s_out, s_err))
         if s_out == '' and s_err == '':
-           return 0 # started OK
+            return 0 # started OK
         elif "pigpio.pid" in s_err:
             return 1 # already started
         else:

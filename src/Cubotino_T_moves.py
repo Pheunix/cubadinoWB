@@ -4,7 +4,7 @@
 """
 #############################################################################################################
 # Andrea Favero 10 April 2024
-# 
+#
 # From Kociemba solver to robot moves
 # This applies to "CUBOTino" autonomous, a simpler Rubik's cube solver robot than my first one:
 # (https://www.youtube.com/watch?v=oYRXe4NyJqs)
@@ -39,20 +39,20 @@ ca 1300 cube solving cycles (3 robots, random scrambled, removed dublicated stat
 62% of the times the first move is one of the URF sides, where U leads with 23% of the total.
 After scanning the 6th cube face, the U face is perfectly on the bottom, so better to start from there.
 
-     
-v_faces{}   _______       
+
+v_faces{}   _______
            |       |
            | ['U'] |
-           |_______|     h_faces{}  _______ _______ _______ 
+           |_______|     h_faces{}  _______ _______ _______
            |       |               |       |       |       |
            | ['F'] |               | ['L'] | ['F'] | ['R'] |
            |_______|               |_______|_______|_______|
            |       |
            | ['D'] |
-           |_______|    
+           |_______|
 
 by knowing 5 faces, the 6th (B face) is also known ;-)
-""" 
+"""
 
 
 # Global variable
